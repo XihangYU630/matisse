@@ -1,0 +1,6 @@
+.authors{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem 1rem;max-width:900px;margin-inline:auto}.authors sup,.affiliations sup{font-size:.68em}.affiliations{display:flex;flex-wrap:wrap;justify-content:center;gap:.15rem 1.5rem;margin-top:5px;color:var(--muted);font-size:.82rem}
+.pipeline img{height:210px;aspect-ratio:auto;object-fit:contain;background:#fff}
+.equations math{min-height:68px;margin:0 auto 20px;font-size:clamp(1.45rem,3vw,2.1rem)}
+.bibtex-empty pre{min-height:130px}.bibtex-empty header{justify-content:flex-start}
+@media(max-width:860px){.pipeline img{height:260px}}
+@media(max-width:680px){.authors{gap:.2rem .75rem}.affiliations{display:grid;gap:0}.pipeline img{height:auto;max-height:340px}}

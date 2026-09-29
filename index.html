@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Matisse: Evidence-Space Reasoning for Active 3D Reconstruction" />
+  <title>Matisse | Active 3D Reconstruction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="improvements.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><nav class="nav-wrap" aria-label="Main navigation"><a class="nav-brand" href="#top">Matisse</a><button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><b>Menu</b></button><div class="site-nav" id="site-nav"><a href="#abstract">Abstract</a><a href="#method">Method</a><a href="#results">Results</a><a href="#citation">Citation</a><a class="paper-nav" href="assets/matisse-paper.pdf">Paper</a></div></nav></header>
+  <main id="main">
+    <section class="hero page-width" id="top">
+      <p class="venue reveal">Preprint · 2026</p>
+      <h1 class="reveal"><span>Matisse:</span> Evidence-Space Reasoning<br class="wide-only" /> for Active 3D Reconstruction</h1>
+      <p class="tagline reveal">A unified, training-free framework for active view acquisition and keyframe selection.</p>
+      <div class="authors reveal">
+        <a href="mailto:jimmyyu@mit.edu">Xihang Yu<sup>1</sup></a><a href="mailto:zhouk777@mit.edu">Kaichen Zhou<sup>1</sup></a><a href="mailto:lorenzos@mit.edu">Lorenzo Shaikewitz<sup>1</sup></a><a href="mailto:cjambon@mit.edu">Clément Jambon<sup>1</sup></a><a href="mailto:zhanx@mit.edu">Xiao Zhan<sup>1</sup></a><a href="mailto:talak@nus.edu.sg">Rajat Talak<sup>2</sup></a><a href="mailto:lcarlone@mit.edu">Luca Carlone<sup>1</sup></a>
+      </div>
+      <div class="affiliations reveal"><span><sup>1</sup> Massachusetts Institute of Technology</span><span><sup>2</sup> National University of Singapore</span></div>
+      <div class="project-links reveal"><a href="assets/matisse-paper.pdf"><i>▤</i><span><strong>Paper</strong><small>PDF</small></span></a><span class="disabled" title="Replace with the public repository URL"><i>⌘</i><span><strong>Code</strong><small>Coming soon</small></span></span><a href="#citation"><i>“</i><span><strong>BibTeX</strong><small>Citation</small></span></a></div>
+      <figure class="teaser reveal"><img src="assets/teaser-composite.png" alt="Selected camera views and reconstructed object meshes in a real robot scene" /><figcaption><strong>Matisse in the real world.</strong> Aggregated depth with selected views and object boxes (left), the captured scene (upper right), and reconstructed meshes (lower right).</figcaption></figure>
+    </section>
+    <section class="section page-width" id="abstract">
+      <h2 class="section-title reveal">Abstract</h2>
+      <div class="abstract reveal"><p>How can a 3D reconstruction system acquire and retain useful information to understand a scene from partial views under a limited computation budget? Existing active-view methods typically estimate uncertainty only over observed geometry, while long-horizon methods often retain redundant observations.</p><p>We introduce <strong>Matisse</strong>, a training-free framework that unifies active reconstruction and keyframe selection using evidence from a pretrained generative 3D model. Matisse estimates <strong>Evidential Uncertainty</strong> from cross-attention evidence and derives <strong>Evidential Information Gain</strong> to choose views according to their expected reduction in posterior entropy.</p></div>
+      <div class="contributions reveal"><article><span>01</span><h3>Reason beyond observed surfaces</h3><p>Generative tokens represent visible and completed geometry, extending uncertainty into unseen regions.</p></article><article><span>02</span><h3>One criterion, two decisions</h3><p>The same information gain selects the next camera and useful frames from long sequences.</p></article><article><span>03</span><h3>Plan without full reconstruction</h3><p>Candidate views are scored in evidence space at an amortized 1.26 ms per candidate.</p></article></div>
+    </section>
+    <section class="section section-tint" id="method"><div class="page-width">
+      <p class="section-kicker reveal">Method at a glance</p><h2 class="section-title reveal">How Matisse works</h2><p class="section-intro reveal">Matisse interprets view-to-token association weights probabilistically. Evidence at each aligned 3D token gives its posterior uncertainty; candidate cameras are ranked by how much uncertainty they are expected to remove.</p>
+      <div class="pipeline reveal">
+        <article><header><span>01</span><b>Observe</b></header><img src="assets/workflow-observation.png" alt="Initial observation" /><h3>Initialize from a partial view</h3><p>A generative model hypothesizes visible and occluded shape.</p></article><i>→</i>
+        <article><header><span>02</span><b>Estimate</b></header><img src="assets/workflow-uncertainty.png" alt="Uncertainty and initial mesh" /><h3>Measure uncertainty</h3><p>Weakly supported 3D tokens remain uncertain.</p></article><i>→</i>
+        <article><header><span>03</span><b>Select</b></header><img src="assets/workflow-acquisition.png" alt="Two selected camera views" /><h3>Acquire the best view</h3><p>Visible uncertainty and exploration rank cameras.</p></article><i>→</i>
+        <article><header><span>04</span><b>Update</b></header><img src="assets/workflow-reconstruction.png" alt="Completed reconstruction" /><h3>Refine and retain</h3><p>New evidence updates shape and retained keyframes.</p></article>
+      </div>
+      <div class="equations">
+        <article class="reveal"><small>Evidential uncertainty</small><math display="block" aria-label="U sub t of q equals alpha over alpha plus E sub t of q"><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo><mo>=</mo><mfrac><mi>α</mi><mrow><mi>α</mi><mo>+</mo><msub><mi>E</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></mrow></mfrac></math><p>Uncertainty falls as accumulated evidence grows for token <em>q</em>.</p></article>
+        <article class="reveal"><small>Approximate information gain</small><math display="block" aria-label="Approximate information gain for camera c"><msub><mover><mrow><mi mathvariant="normal">IG</mi></mrow><mo>^</mo></mover><mi>t</mi></msub><mo>(</mo><mi>c</mi><mo>)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>q</mi><mo>∈</mo><mi>Ω</mi><mo>(</mo><mi>c</mi><mo>)</mo></mrow></munder><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></math><p>A view is informative when it sees many uncertain tokens.</p></article>
+      </div>
+    </div></section>
+    <section class="section page-width" id="results">
+      <p class="section-kicker reveal">Experiments</p><h2 class="section-title reveal">Results</h2><p class="section-intro reveal">We evaluate sparse-view reconstruction on GSO30, YCB-V, and Replica: single objects, cluttered tabletops, and room-scale environments.</p>
+      <div class="stats reveal"><article><strong>12.7%</strong><span>lower Chamfer distance<br />on GSO30</span></article><article><strong>1.50×</strong><span>faster end-to-end<br />active reconstruction</span></article><article><strong>7 / 48</strong><span>views to converge<br />at comparable quality</span></article></div>
+      <figure class="comparison reveal"><figcaption><h3>Qualitative comparison on GSO30</h3><p>Matisse reconstructs geometry and appearance more faithfully than active-reconstruction baselines.</p></figcaption><div class="comparison-scroll"><div class="method-labels"><span>GT</span><span>Random</span><span>FisherRF</span><span>GauSS-MI</span><span>GAVIS</span><span>MAGICIAN</span><span>Matisse</span></div><div class="result-strips"><img src="assets/result-lunch-bag.png" alt="Lunch bag reconstruction comparison" /><img src="assets/result-school-bus.png" alt="School bus reconstruction comparison" /><img src="assets/result-train.png" alt="Train reconstruction comparison" /><img src="assets/result-turtle.png" alt="Turtle reconstruction comparison" /></div></div></figure>
+      <div class="quantitative reveal"><div><p class="section-kicker">Quantitative evaluation</p><h3>GSO30 active reconstruction</h3><p>Compact comparison using the Stream3D reconstruction backend.</p></div><div class="table-wrap"><table><thead><tr><th>Method</th><th>CD ↓</th><th>IoU ↑</th><th>P-FID ↓</th><th>Runtime ↓</th></tr></thead><tbody><tr><td>Random</td><td>62.078</td><td>0.736</td><td>48.456</td><td>16.37 s</td></tr><tr><td>FisherRF</td><td>65.866</td><td>0.716</td><td>53.443</td><td>55.57 s</td></tr><tr><td>GauSS-MI</td><td>88.676</td><td>0.686</td><td>64.831</td><td>53.88 s</td></tr><tr><td>GAVIS</td><td>87.598</td><td>0.687</td><td>64.394</td><td>95.68 s</td></tr><tr><td>MAGICIAN</td><td>63.666</td><td>0.733</td><td>50.175</td><td>23.97 s</td></tr><tr class="ours"><td>Matisse-G <small>Ours</small></td><td><b>54.167</b></td><td><b>0.765</b></td><td><b>45.354</b></td><td><b>16.02 s</b></td></tr></tbody></table></div></div>
+      <div class="convergence reveal"><div><p class="section-kicker">Keyframe selection</p><h3>Comparable quality with one-seventh of the views</h3><p>Matisse selects 7 informative keyframes and reaches the quality Stream3D obtains after processing 48 sequential views.</p></div><img src="assets/convergence.png" alt="Chamfer distance convergence for Matisse and Stream3D" /></div>
+    </section>
+    <section class="section section-tint" id="citation"><div class="page-width citation-grid"><div><p class="section-kicker reveal">Citation</p><h2 class="section-title reveal">BibTeX</h2></div><div class="bibtex bibtex-empty reveal"><header><span>matisse.bib</span></header><pre aria-label="BibTeX citation to be added after arXiv release"><code id="bibtex-code"></code></pre></div></div></section>
+  </main>
+  <footer><div class="page-width"><p><b>Matisse</b> · Evidence-Space Reasoning for Active 3D Reconstruction</p><p>Website template · 2026</p></div></footer>
+  <script src="script.js"></script>
+</body>
+</html>
