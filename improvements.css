@@ -2,5 +2,6 @@
 .pipeline img{height:210px;aspect-ratio:auto;object-fit:contain;background:#fff}
 .equations math{min-height:68px;margin:0 auto 20px;font-size:clamp(1.45rem,3vw,2.1rem)}
 .bibtex-empty pre{min-height:130px}.bibtex-empty header{justify-content:flex-start}
+.video-shell{max-width:960px;margin-inline:auto;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 15px 45px rgba(28,39,56,.08)}.video-frame{overflow:hidden;aspect-ratio:16/9;border-radius:6px;background:#111}.video-frame iframe{display:block;width:100%;height:100%;border:0}.video-caption{margin:11px 3px 0;color:var(--muted);font-size:.78rem}.video-caption a{color:var(--blue);font-weight:600}.video-caption a:hover{text-decoration:underline}
 @media(max-width:860px){.pipeline img{height:260px}}
-@media(max-width:680px){.authors{gap:.2rem .75rem}.affiliations{display:grid;gap:0}.pipeline img{height:auto;max-height:340px}}
+@media(max-width:680px){.authors{gap:.2rem .75rem}.affiliations{display:grid;gap:0}.pipeline img{height:auto;max-height:340px}.video-shell{padding:7px}}
