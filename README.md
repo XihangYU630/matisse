@@ -26,6 +26,5 @@ The November 16, 2026 content update follows the revised public manuscript:
 - The webpage shows all Stream3D-backend methods from the GSO30 table. Detailed YCB-V and Replica result tables remain in the paper.
 - GSO30 runtime uses the unchanged Table 1 values, with population standard deviation over 30 objects.
 - The keyframe-selection plot is rendered from the manuscript's `gso30_casual_hard_view_convergence.pdf`.
-- The method details distinguish observation time from denoising time and report the Gaussian parameters, exploration penalty λ = 0.5, and prior pseudo-evidence α = 1.
 
 Keep the Paper buttons linked to arXiv; the site does not bundle the manuscript PDF.
