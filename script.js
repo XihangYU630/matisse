@@ -20,12 +20,6 @@ document.querySelectorAll(".equations math mo").forEach((operator) => {
   }
 });
 
-const informationGainLabel = document.querySelector(".equations article:nth-child(2) small");
-if (informationGainLabel) informationGainLabel.textContent = "Evidential Information Gain";
-
-const informationGainMath = document.querySelector(".equations article:nth-child(2) math");
-informationGainMath?.setAttribute("aria-label", "Evidential information gain for camera c");
-
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {

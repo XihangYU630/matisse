@@ -2,6 +2,9 @@
 .pipeline img{height:210px;aspect-ratio:auto;object-fit:contain;background:#fff}
 .equations math{min-height:68px;margin:0 auto 20px;font-size:clamp(1.45rem,3vw,2.1rem)}
 .bibtex-empty pre{min-height:130px}.bibtex-empty header{justify-content:flex-start}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.method-details{margin-top:22px;padding:20px 24px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--muted);font-size:.85rem}.method-details summary{cursor:pointer;color:var(--ink);font-weight:600}.method-details p:last-child{margin-bottom:0}
+.quantitative>*{min-width:0}.quantitative.benchmark-full{grid-template-columns:1fr;gap:24px}.quantitative tbody th[scope="row"]{color:var(--ink);background:transparent;font-weight:400}.quantitative .ours th[scope="row"]{color:var(--green);font-weight:700}.backend-row th{color:var(--blue-dark);background:var(--blue-soft);text-align:left;font-weight:600}.table-wrap:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
 .video-shell{max-width:960px;margin-inline:auto;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 15px 45px rgba(28,39,56,.08)}.video-frame{overflow:hidden;aspect-ratio:16/9;border-radius:6px;background:#111}.video-frame iframe{display:block;width:100%;height:100%;border:0}.video-caption{margin:11px 3px 0;color:var(--muted);font-size:.78rem}.video-caption a{color:var(--blue);font-weight:600}.video-caption a:hover{text-decoration:underline}
 @media(max-width:860px){.pipeline img{height:260px}}
 @media(max-width:680px){.authors{gap:.2rem .75rem}.affiliations{display:grid;gap:0}.pipeline img{height:auto;max-height:340px}.video-shell{padding:7px}}

@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="improvements.css" />
+  <link rel="stylesheet" href="styles.css?v=20261116" />
+  <link rel="stylesheet" href="improvements.css?v=20261116" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,7 +41,11 @@
     </section>
     <section class="section page-width" id="abstract">
       <h2 class="section-title reveal">Abstract</h2>
-      <div class="abstract reveal"><p>How can a 3D reconstruction system acquire and retain useful information to understand a scene from partial views under a limited computation budget? Existing active-view methods typically estimate uncertainty only over observed geometry, while long-horizon methods often retain redundant observations.</p><p>We introduce <strong>Matisse</strong>, a training-free framework that unifies active reconstruction and keyframe selection using evidence from a pretrained generative 3D model. Matisse estimates <strong>Evidential Uncertainty</strong> from cross-attention evidence and derives <strong>Evidential Information Gain</strong> to choose views according to their expected reduction in posterior entropy.</p></div>
+      <div class="abstract reveal">
+        <p>How can a 3D reconstruction system acquire and retain useful information to understand the geometry of a scene from partial views under a limited computation budget? Existing active view acquisition methods typically estimate uncertainty over observed or instantiated geometry, limiting their ability to reason about unseen structure, while long-horizon reconstruction methods often retain redundant observations.</p>
+        <p>We introduce <strong>Matisse</strong>, a training-free framework that unifies active reconstruction and keyframe selection using evidence from a pretrained generative 3D model. Matisse estimates <strong>Evidential Uncertainty</strong> from cross-attention evidence associated with 3D latent tokens and derives <strong>Evidential Information Gain</strong> to guide view acquisition and keyframe selection. Occlusion-aware, object-balanced aggregation supports multi-object scenes, while uncertainty propagation through intermediate latents avoids full reconstruction during planning.</p>
+        <p>Matisse reduces Chamfer distance by <strong>12.7%, 3.8%, and 9.2%</strong> on GSO30, YCB-V, and Replica, respectively, relative to the best baseline on each dataset. On GSO30, it achieves a <strong>1.50× end-to-end speedup</strong> over the best active reconstruction baseline with the same backend. For keyframe selection, Matisse achieves <strong>18.3% lower Chamfer distance</strong> than Stream3D and approaches convergence using roughly <strong>20% as many views</strong>.</p>
+      </div>
       <div class="contributions reveal"><article><span>01</span><h3>Reason beyond observed surfaces</h3><p>Generative tokens represent visible and completed geometry, extending uncertainty into unseen regions.</p></article><article><span>02</span><h3>One criterion, two decisions</h3><p>The same information gain selects the next camera and useful frames from long sequences.</p></article><article><span>03</span><h3>Plan without full reconstruction</h3><p>Candidate views are scored in evidence space at an amortized 1.26 ms per candidate.</p></article></div>
     </section>
     <section class="section section-tint" id="method"><div class="page-width">
@@ -53,16 +57,88 @@
         <article><header><span>04</span><b>Update</b></header><img src="assets/workflow-reconstruction.png" alt="Completed reconstruction" /><h3>Refine and retain</h3><p>New evidence updates shape and retained keyframes.</p></article>
       </div>
       <div class="equations">
-        <article class="reveal"><small>Evidential uncertainty</small><math display="block" aria-label="U sub t of q equals alpha over alpha plus E sub t of q"><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo><mo>=</mo><mfrac><mi>α</mi><mrow><mi>α</mi><mo>+</mo><msub><mi>E</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></mrow></mfrac></math><p>Uncertainty falls as accumulated evidence grows for token <em>q</em>.</p></article>
-        <article class="reveal"><small>Approximate information gain</small><math display="block" aria-label="Approximate information gain for camera c"><msub><mover><mrow><mi mathvariant="normal">IG</mi></mrow><mo>^</mo></mover><mi>t</mi></msub><mo>(</mo><mi>c</mi><mo>)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>q</mi><mo>∈</mo><mi>Ω</mi><mo>(</mo><mi>c</mi><mo>)</mo></mrow></munder><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></math><p>A view is informative when it sees many uncertain tokens.</p></article>
+        <article class="reveal"><small>Evidential uncertainty</small><math display="block" aria-label="U sub t of q equals alpha over alpha plus E sub t of q"><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo><mo>=</mo><mfrac><mi>α</mi><mrow><mi>α</mi><mo>+</mo><msub><mi>E</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></mrow></mfrac></math><p>Uncertainty falls as evidence accumulates across retained views. Here <em>t</em> indexes acquired observations and <em>q</em> indexes a 3D token.</p></article>
+        <article class="reveal"><small>Approximate information gain</small><math display="block" aria-label="Approximate information gain for camera c"><msub><mover><mrow><mi mathvariant="normal">IG</mi></mrow><mo>^</mo></mover><mi>t</mi></msub><mo>(</mo><mi>c</mi><mo>)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>q</mi><mo>∈</mo><mi>Ω</mi><mo>(</mo><mi>c</mi><mo>)</mo></mrow></munder><msub><mi>U</mi><mi>t</mi></msub><mo>[</mo><mi>q</mi><mo>]</mo></math><p>A view is informative when it sees many uncertain tokens. This visibility-based score approximates the expected reduction in posterior entropy.</p></article>
       </div>
+      <details class="method-details reveal">
+        <summary>Probabilistic model and experimental settings</summary>
+        <p>The noisy latent <em>z</em><sub>τ</sub> uses denoising time <em>τ</em>, distinct from observation step <em>t</em>; <em>θ</em> denotes the pretrained generator parameters. The Gaussian derivation is understood at fixed denoising time. Its prior mean is <em>μ</em><sub>0</sub> ∈ ℝ<sup>d</sup>, <em>σ</em><sup>2</sup> &gt; 0 is a shared variance scale, <em>I</em> is the <em>d</em> × <em>d</em> identity matrix, and <em>α</em> &gt; 0 is prior pseudo-evidence. A view with zero evidence for a token contributes no likelihood term.</p>
+        <p>GSO30, YCB-V, and Replica all use <strong>exploration penalty λ = 0.5</strong> and <strong>prior pseudo-evidence α = 1</strong>. Active reconstruction uses five views per object on GSO30 and Replica, and five views per scene on YCB-V.</p>
+      </details>
     </div></section>
     <section class="section page-width" id="results">
       <p class="section-kicker reveal">Experiments</p><h2 class="section-title reveal">Results</h2><p class="section-intro reveal">We evaluate sparse-view reconstruction on GSO30, YCB-V, and Replica: single objects, cluttered tabletops, and room-scale environments.</p>
-      <div class="stats reveal"><article><strong>12.7%</strong><span>lower Chamfer distance<br />on GSO30</span></article><article><strong>1.50×</strong><span>faster end-to-end<br />active reconstruction</span></article><article><strong>7 / 48</strong><span>views to converge<br />at comparable quality</span></article></div>
+      <div class="stats reveal"><article><strong>12.7%</strong><span>lower Chamfer distance<br />on GSO30</span></article><article><strong>1.50×</strong><span>faster than MAGICIAN<br />with Stream3D on GSO30</span></article><article><strong>~20%</strong><span>as many views to converge<br />as Stream3D on GSO30</span></article></div>
       <figure class="comparison reveal"><figcaption><h3>Qualitative comparison on GSO30</h3><p>Matisse reconstructs geometry and appearance more faithfully than active-reconstruction baselines.</p></figcaption><div class="comparison-scroll"><div class="method-labels"><span>GT</span><span>Random</span><span>FisherRF</span><span>GauSS-MI</span><span>GAVIS</span><span>MAGICIAN</span><span>Matisse</span></div><div class="result-strips"><img src="assets/result-lunch-bag.png" alt="Lunch bag reconstruction comparison" /><img src="assets/result-school-bus.png" alt="School bus reconstruction comparison" /><img src="assets/result-train.png" alt="Train reconstruction comparison" /><img src="assets/result-turtle.png" alt="Turtle reconstruction comparison" /></div></div></figure>
-      <div class="quantitative reveal"><div><p class="section-kicker">Quantitative evaluation</p><h3>GSO30 active reconstruction</h3><p>Compact comparison using the Stream3D reconstruction backend.</p></div><div class="table-wrap"><table><thead><tr><th>Method</th><th>CD ↓</th><th>IoU ↑</th><th>P-FID ↓</th><th>Runtime ↓</th></tr></thead><tbody><tr><td>Random</td><td>62.078</td><td>0.736</td><td>48.456</td><td>16.37 s</td></tr><tr><td>FisherRF</td><td>65.866</td><td>0.716</td><td>53.443</td><td>55.57 s</td></tr><tr><td>GauSS-MI</td><td>88.676</td><td>0.686</td><td>64.831</td><td>53.88 s</td></tr><tr><td>GAVIS</td><td>87.598</td><td>0.687</td><td>64.394</td><td>95.68 s</td></tr><tr><td>MAGICIAN</td><td>63.666</td><td>0.733</td><td>50.175</td><td>23.97 s</td></tr><tr class="ours"><td>Matisse-G <small>Ours</small></td><td><b>54.167</b></td><td><b>0.765</b></td><td><b>45.354</b></td><td><b>16.02 s</b></td></tr></tbody></table></div></div>
-      <div class="convergence reveal"><div><p class="section-kicker">Keyframe selection</p><h3>Comparable quality with one-seventh of the views</h3><p>Matisse selects 7 informative keyframes and reaches the quality Stream3D obtains after processing 48 sequential views.</p></div><img src="assets/convergence.png" alt="Chamfer distance convergence for Matisse and Stream3D" /></div>
+      <div class="quantitative reveal">
+        <div><p class="section-kicker">Quantitative evaluation</p><h3>GSO30 active reconstruction</h3><p>All Stream3D-backend methods from Table 1. Runtime is mean ± population standard deviation over 30 objects.</p></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="GSO30 reconstruction using the Stream3D backend">
+  <table id="gso30-results"><caption class="visually-hidden">GSO30 reconstruction using the Stream3D backend</caption>
+    <thead><tr><th scope="col">Method</th><th scope="col">CD (mm) ↓</th><th scope="col">IoU ↑</th><th scope="col">P-FID ↓</th><th scope="col">Runtime (s) ↓</th></tr></thead>
+    <tbody aria-label="Stream3D">
+      <tr data-backend="Stream3D"><th scope="row">Random</th><td>62.078</td><td>0.736</td><td>48.456</td><td>16.374 ± 1.566</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">Occupancy-G</th><td>70.778</td><td>0.731</td><td>53.528</td><td>16.929 ± 1.870</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">Occupancy-RH</th><td>66.404</td><td>0.729</td><td>52.263</td><td>17.390 ± 1.953</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">FisherRF</th><td>65.866</td><td>0.716</td><td>53.443</td><td>55.566 ± 4.329</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GauSS-MI</th><td>88.676</td><td>0.686</td><td>64.831</td><td>53.878 ± 2.785</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GAVIS</th><td>87.598</td><td>0.687</td><td>64.394</td><td>95.679 ± 7.689</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">MAGICIAN</th><td>63.666</td><td>0.733</td><td>50.175</td><td>23.965 ± 2.626</td></tr>
+      <tr class="ours" data-backend="Stream3D"><th scope="row">Matisse-G <small>Ours</small></th><td>54.167</td><td>0.765</td><td>45.354</td><td>16.023 ± 1.397</td></tr>
+      <tr class="ours" data-backend="Stream3D"><th scope="row">Matisse-RH <small>Ours</small></th><td>56.228</td><td>0.752</td><td>48.652</td><td>16.922 ± 1.714</td></tr>
+    </tbody>
+  </table>
+</div>
+      </div>
+      <div class="quantitative benchmark-full reveal">
+        <div><p class="section-kicker">Multi-object reconstruction</p><h3>YCB-V active reconstruction</h3><p>All methods from Table 2, grouped by reconstruction backend. Runtime is mean ± population standard deviation over 60 scene runs (12 scenes × 5 initial views), measured per scene.</p></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="YCB-V reconstruction, grouped by backend">
+  <table id="ycbv-results"><caption class="visually-hidden">YCB-V reconstruction, grouped by backend</caption>
+    <thead><tr><th scope="col">Method</th><th scope="col">CD (mm) ↓</th><th scope="col">IoU ↑</th><th scope="col">P-FID ↓</th><th scope="col">Runtime (s) ↓</th></tr></thead>
+    <tbody aria-label="Feed-forward">
+      <tr class="backend-row"><th scope="rowgroup" colspan="5">Feed-forward</th></tr>
+      <tr data-backend="Feed-forward"><th scope="row">TRELLIS.2</th><td>16.768</td><td>0.665</td><td>66.609</td><td>99.969 ± 31.229</td></tr>
+      <tr data-backend="Feed-forward"><th scope="row">TRELLIS.2+M.D.</th><td>18.357</td><td>0.634</td><td>76.751</td><td>145.346 ± 52.187</td></tr>
+      <tr data-backend="Feed-forward"><th scope="row">SAM3D</th><td>7.043</td><td>0.869</td><td>22.561</td><td>14.513 ± 3.813</td></tr>
+    </tbody>
+    <tbody aria-label="3DGS">
+      <tr class="backend-row"><th scope="rowgroup" colspan="5">3DGS</th></tr>
+      <tr data-backend="3DGS"><th scope="row">FisherRF</th><td>18.494</td><td>0.332</td><td>137.698</td><td>109.827 ± 11.961</td></tr>
+      <tr data-backend="3DGS"><th scope="row">GauSS-MI</th><td>12.482</td><td>0.421</td><td>116.364</td><td>95.851 ± 9.754</td></tr>
+      <tr data-backend="3DGS"><th scope="row">GAVIS</th><td>12.281</td><td>0.681</td><td>106.955</td><td>143.018 ± 20.048</td></tr>
+      <tr data-backend="3DGS"><th scope="row">MAGICIAN</th><td>17.515</td><td>0.636</td><td>90.056</td><td>323.777 ± 66.196</td></tr>
+    </tbody>
+    <tbody aria-label="Stream3D">
+      <tr class="backend-row"><th scope="rowgroup" colspan="5">Stream3D</th></tr>
+      <tr data-backend="Stream3D"><th scope="row">Random</th><td>6.705</td><td>0.877</td><td>21.249</td><td>88.989 ± 19.424</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">Occupancy-G</th><td>6.899</td><td>0.878</td><td>22.419</td><td>89.514 ± 20.168</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">Occupancy-RH</th><td>6.822</td><td>0.880</td><td>21.731</td><td>89.816 ± 20.636</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">FisherRF</th><td>7.852</td><td>0.853</td><td>25.680</td><td>149.129 ± 20.894</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GauSS-MI</th><td>6.731</td><td>0.877</td><td>22.039</td><td>139.062 ± 20.243</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GAVIS</th><td>7.286</td><td>0.867</td><td>23.875</td><td>157.075 ± 18.592</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">MAGICIAN</th><td>7.835</td><td>0.853</td><td>25.421</td><td>92.614 ± 18.342</td></tr>
+      <tr class="ours" data-backend="Stream3D"><th scope="row">Matisse-G <small>Ours</small></th><td>6.451</td><td>0.885</td><td>21.450</td><td>88.435 ± 18.773</td></tr>
+      <tr class="ours" data-backend="Stream3D"><th scope="row">Matisse-RH <small>Ours</small></th><td>6.474</td><td>0.885</td><td>21.192</td><td>91.185 ± 20.347</td></tr>
+    </tbody>
+  </table>
+</div>
+      </div>
+      <div class="quantitative reveal">
+        <div><p class="section-kicker">Indoor scenes</p><h3>Replica reconstruction</h3><p>All Stream3D-backend methods from the supplementary comparison. Replica uses one-sided Chamfer distance because only partial ground-truth meshes are available.</p></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Replica reconstruction using the Stream3D backend">
+  <table id="replica-results"><caption class="visually-hidden">Replica reconstruction using the Stream3D backend</caption>
+    <thead><tr><th scope="col">Method</th><th scope="col">CD (mm) ↓</th><th scope="col">IoU ↑</th><th scope="col">P-FID ↓</th><th scope="col">PSNR (dB) ↑</th></tr></thead>
+    <tbody aria-label="Stream3D">
+      <tr data-backend="Stream3D"><th scope="row">Random</th><td>23.820</td><td>0.708</td><td>45.440</td><td>23.816</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">FisherRF</th><td>27.301</td><td>0.713</td><td>49.320</td><td>23.843</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GauSS-MI</th><td>21.028</td><td>0.738</td><td>39.764</td><td>23.876</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">GAVIS</th><td>23.395</td><td>0.715</td><td>43.508</td><td>23.789</td></tr>
+      <tr data-backend="Stream3D"><th scope="row">MAGICIAN</th><td>23.195</td><td>0.746</td><td>40.243</td><td>24.056</td></tr>
+      <tr class="ours" data-backend="Stream3D"><th scope="row">Matisse-G <small>Ours</small></th><td>19.103</td><td>0.761</td><td>37.686</td><td>24.448</td></tr>
+    </tbody>
+  </table>
+</div>
+      </div>
+      <div class="convergence reveal"><div><p class="section-kicker">Keyframe selection</p><h3>Lower reconstruction error with fewer views</h3><p>Across 30 GSO30 objects on challenging 100-view casual trajectories, Matisse selects up to eight keyframes. Its fitted convergence plateau has 18.3% lower Chamfer distance than Stream3D and 21.9% lower than Evenly-spaced selection. It approaches convergence using roughly 20% as many views as Stream3D.</p></div><img src="assets/convergence.png?v=20261116" alt="GSO30 keyframe selection on challenging casual trajectories: Matisse, Stream3D, Random, Evenly-spaced, and Pose-diversity, with exponential plateau fits" /></div>
     </section>
     <section class="section section-tint" id="citation"><div class="page-width citation-grid"><div><p class="section-kicker reveal">Citation</p><h2 class="section-title reveal">BibTeX</h2></div><div class="bibtex reveal"><header><span>matisse.bib</span><button type="button" data-copy>Copy</button></header><pre aria-label="BibTeX citation for Matisse"><code id="bibtex-code">@article{yu2026matisse,
   title={Matisse: Evidence-Space Reasoning for Active 3D Reconstruction},
@@ -72,6 +148,6 @@
 }</code></pre></div></div></section>
   </main>
   <footer><div class="page-width"><p><b>Matisse</b> · Evidence-Space Reasoning for Active 3D Reconstruction</p></div></footer>
-  <script src="script.js"></script>
+  <script src="script.js?v=20261116"></script>
 </body>
 </html>
